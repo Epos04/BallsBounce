@@ -13,44 +13,34 @@ const levelLayouts = [
     // Level 1: U-shape
     {
         pads: [
-            { x: 200, y: 550 }, { x: 100, y: 550 }, { x: 300, y: 550 },
-            { x: 100, y: 450 }, { x: 100, y: 350 },
-            { x: 300, y: 450 }, { x: 300, y: 350 }
+            { x: 200, y: 550, w: 300, h: 10 }, // Bottom
         ],
         walls: [
             { x: 50, y: 450, w: 10, h: 200 }, // Left
-            { x: 200, y: 575, w: 300, h: 10 }, // Bottom
             { x: 350, y: 450, w: 10, h: 200 }  // Right
         ]
     },
     // Level 2: O-shape
     {
         pads: [
-            { x: 200, y: 550 }, { x: 100, y: 550 }, { x: 300, y: 550 },
-            { x: 100, y: 450 }, { x: 100, y: 350 }, { x: 100, y: 250 },
-            { x: 300, y: 450 }, { x: 300, y: 350 }, { x: 300, y: 250 },
-            { x: 100, y: 150 }, { x: 200, y: 150 }, { x: 300, y: 150 }
+            { x: 200, y: 550, w: 300, h: 10 }, // Bottom
+            { x: 200, y: 150, w: 300, h: 10 }  // Top
         ],
         walls: [
             { x: 50, y: 350, w: 10, h: 400 }, // Left
-            { x: 200, y: 575, w: 300, h: 10 }, // Bottom
-            { x: 350, y: 350, w: 10, h: 400 }, // Right
-            { x: 200, y: 125, w: 300, h: 10 }  // Top
+            { x: 350, y: 350, w: 10, h: 400 } // Right
         ]
     },
-    // Level 3: S-shape (simplified walls for arcade physics)
+    // Level 3: S-shape
     {
         pads: [
-            { x: 200, y: 550 }, { x: 100, y: 550 }, { x: 300, y: 550 },
-            { x: 100, y: 450 }, { x: 100, y: 350 },
-            { x: 200, y: 350 },
-            { x: 300, y: 350 }, { x: 300, y: 250 },
-            { x: 100, y: 150 }, { x: 200, y: 150 }
+            { x: 150, y: 550, w: 200, h: 10 }, // Bottom-left
+            { x: 200, y: 350, w: 200, h: 10 }, // Middle
+            { x: 250, y: 150, w: 200, h: 10 }  // Top-right
         ],
         walls: [
-            { x: 50, y: 350, w: 10, h: 400 }, // Left
-            { x: 200, y: 575, w: 300, h: 10 }, // Bottom
-            { x: 350, y: 350, w: 10, h: 400 }, // Right
+            { x: 50, y: 450, w: 10, h: 200 }, // Middle-left
+            { x: 350, y: 250, w: 10, h: 200 } // Middle-right
         ]
     }
 ];
@@ -73,8 +63,8 @@ class GameScene extends Phaser.Scene {
         graphics.generateTexture('ball', 16, 16);
 
         graphics.fillStyle(0x8B4513);
-        graphics.fillRect(0, 0, 100, 10);
-        graphics.generateTexture('pad', 100, 10);
+        graphics.fillRect(0, 0, 1, 1); // Use a 1x1 texture and scale it
+        graphics.generateTexture('pad', 1, 1);
         graphics.destroy();
     }
 
@@ -131,14 +121,13 @@ class GameScene extends Phaser.Scene {
 
         addPadBtn.addEventListener('click', () => {
             if (this.money >= this.addPadCost) {
-                const layout = levelLayouts[this.level - 1] || levelLayouts[0];
-                if (this.pads.countActive(true) < layout.pads.length) {
-                    this.money -= this.addPadCost;
-                    this.addPadCost = Math.ceil(this.addPadCost * 1.5);
-                    const nextPadPos = layout.pads[this.pads.countActive(true)];
-                    this.pads.create(nextPadPos.x, nextPadPos.y, 'pad');
-                    this.updateUI();
-                }
+                this.money -= this.addPadCost;
+                this.addPadCost = Math.ceil(this.addPadCost * 1.5);
+                const x = Phaser.Math.Between(100, 300);
+                const y = Phaser.Math.Between(200, 500);
+                const newPad = this.pads.create(x, y, 'pad').setDisplaySize(100, 10);
+                newPad.refreshBody();
+                this.updateUI();
             }
         });
 
@@ -203,17 +192,18 @@ class GameScene extends Phaser.Scene {
     loadLevel() {
         this.pads.clear(true, true);
         this.walls.clear(true, true);
-
         const layout = levelLayouts[this.level - 1] || levelLayouts[0];
 
-        // Load first pad
-        const firstPad = layout.pads[0];
-        const pad = this.pads.create(firstPad.x, firstPad.y, 'pad');
+        // Load all pads for the level
+        layout.pads.forEach(padData => {
+            const pad = this.pads.create(padData.x, padData.y, 'pad').setDisplaySize(padData.w, padData.h);
+            pad.refreshBody();
+        });
 
         // Load walls
         layout.walls.forEach(wallData => {
-            const wall = this.walls.create(wallData.x, wallData.y, null);
-            wall.setSize(wallData.w, wallData.h).setDisplaySize(wallData.w, wallData.h);
+            const wall = this.walls.create(wallData.x, wallData.y, null).setSize(wallData.w, wallData.h).setVisible(false);
+            wall.refreshBody();
         });
     }
 

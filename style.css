@@ -1,39 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #f0f0f0;
+    background-color: #f4f7f9;
+    color: #333;
+}
+
+h1 {
+    color: #2c3e50;
 }
 
 #game-container {
     display: flex;
     margin-top: 20px;
-}
-
-canvas {
-    border: 1px solid black;
-    background-color: #fff;
+    gap: 30px;
 }
 
 #ui-container {
-    margin-left: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background-color: #fafafa;
+    width: 250px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-#stats p, #upgrades button {
-    margin: 10px 0;
+#stats {
+    border-bottom: 2px solid #eef2f5;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
 }
 
-button {
-    padding: 10px;
+#stats p {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-weight: 600;
+}
+
+#stats span {
+    font-weight: 400;
+    color: #555;
+}
+
+#upgrades button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    background-color: #3498db;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1em;
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#upgrades button:hover {
+    background-color: #2980b9;
 }
 
 .instructions {
-    font-size: 0.9em;
-    color: #666;
+    font-size: 0.85em;
+    color: #777;
     margin-top: 15px;
+    text-align: center;
 }
