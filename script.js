@@ -1,6 +1,7 @@
 // Get canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const mergeInstructions = document.getElementById('mergeInstructions');
 
 // Game constants
 const GRAVITY = 0.5;
@@ -12,6 +13,30 @@ const COLORS = [
 // Set canvas dimensions
 canvas.width = 400;
 canvas.height = 600;
+
+const levelLayouts = [
+    // Level 1: U-shape
+    [
+        { x: 50, y: 550 }, { x: 150, y: 550 }, { x: 250, y: 550 },
+        { x: 50, y: 450 }, { x: 50, y: 350 }, { x: 50, y: 250 },
+        { x: 250, y: 450 }, { x: 250, y: 350 }, { x: 250, y: 250 }
+    ],
+    // Level 2: O-shape
+    [
+        { x: 50, y: 550 }, { x: 150, y: 550 }, { x: 250, y: 550 },
+        { x: 50, y: 450 }, { x: 50, y: 350 }, { x: 50, y: 250 },
+        { x: 250, y: 450 }, { x: 250, y: 350 }, { x: 250, y: 250 },
+        { x: 50, y: 150 }, { x: 150, y: 150 }, { x: 250, y: 150 }
+    ],
+    // Level 3: S-shape
+    [
+        { x: 50, y: 550 }, { x: 150, y: 550 }, { x: 250, y: 550 },
+        { x: 50, y: 450 }, { x: 50, y: 350 },
+        { x: 150, y: 350 }, { x: 250, y: 350 },
+        { x: 250, y: 250 }, { x: 250, y: 150 },
+        { x: 50, y: 150 }, { x: 150, y: 150 }
+    ]
+];
 
 class Game {
     constructor() {
@@ -25,21 +50,28 @@ class Game {
         this.selectedBalls = [];
         this.particles = [];
 
-        this.init();
+        this.loadLevel();
     }
 
-    init() {
-        // Initial setup
-        this.pads.push(new Pad(canvas.width / 2 - 50, 550));
-        this.balls.push(new Ball(canvas.width / 2, 50, 1));
+    loadLevel() {
+        this.pads = [];
+        const layout = levelLayouts[this.level - 1] || levelLayouts[0];
+        this.pads.push(new Pad(layout[0].x, layout[0].y));
+        if (this.balls.length === 0) {
+            this.balls.push(new Ball(canvas.width / 2 + (Math.random() - 0.5) * 20, 50, 1));
+        }
         this.updateUI();
     }
 
     update() {
         // Update all game objects
+        const layout = levelLayouts[this.level - 1] || levelLayouts[0];
+        const minX = Math.min(...layout.map(p => p.x));
+        const maxX = Math.max(...layout.map(p => p.x + 100));
+
         this.balls.forEach(ball => {
             ball.update(this.pads);
-            if (ball.y > canvas.height) {
+            if (ball.y > canvas.height || ball.x < minX || ball.x > maxX) {
                 ball.reset();
             }
         });
@@ -53,6 +85,7 @@ class Game {
             this.level++;
             this.targetMoney *= 2;
             alert(`Level ${this.level - 1} complete! Starting level ${this.level}.`);
+            this.loadLevel();
         }
     }
 
@@ -63,6 +96,9 @@ class Game {
         gradient.addColorStop(1, '#4682B4');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the tube
+        this.drawTube();
 
         // Draw all game objects
         this.pads.forEach(pad => pad.draw());
@@ -76,6 +112,31 @@ class Game {
         document.getElementById('target').textContent = this.targetMoney;
         document.getElementById('addBallCost').textContent = this.addBallCost;
         document.getElementById('addPadCost').textContent = this.addPadCost;
+        this.updateMergeInstructions();
+    }
+
+    updateMergeInstructions() {
+        switch (this.selectedBalls.length) {
+            case 0:
+                mergeInstructions.textContent = "Click a ball to select it for merging.";
+                break;
+            case 1:
+                mergeInstructions.textContent = "Select another ball of the same level.";
+                break;
+            case 2:
+                mergeInstructions.textContent = "Click 'Merge Balls' to combine them!";
+                break;
+            default:
+                mergeInstructions.textContent = "";
+        }
+    }
+
+    drawTube() {
+        ctx.fillStyle = '#A9A9A9';
+        ctx.fillRect(canvas.width / 2 - 25, 0, 50, 50);
+        ctx.strokeStyle = '#696969';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(canvas.width / 2 - 25, 0, 50, 50);
     }
 }
 
@@ -98,11 +159,6 @@ class Ball {
         // Move the ball
         this.x += this.dx;
         this.y += this.dy;
-
-        // Wall collisions
-        if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
-            this.dx *= -1;
-        }
 
         // Pad collisions
         pads.forEach(pad => {
@@ -136,8 +192,8 @@ class Ball {
     }
 
     reset() {
-        this.y = 0;
-        this.x = Math.random() * canvas.width;
+        this.y = 50;
+        this.x = canvas.width / 2 + (Math.random() - 0.5) * 20;
         this.dy = 0;
         this.dx = (Math.random() - 0.5) * 5;
     }
@@ -205,11 +261,13 @@ canvas.addEventListener('click', (event) => {
             if (ball.selected) {
                 ball.selected = false;
                 game.selectedBalls = game.selectedBalls.filter(b => b !== ball);
+                game.updateMergeInstructions();
             } else {
                 if (game.selectedBalls.length < 2) {
                     if (game.selectedBalls.length === 0 || game.selectedBalls[0].level === ball.level) {
                         ball.selected = true;
                         game.selectedBalls.push(ball);
+                        game.updateMergeInstructions();
                     }
                 }
             }
@@ -220,7 +278,7 @@ canvas.addEventListener('click', (event) => {
 document.getElementById('addBallBtn').addEventListener('click', () => {
     if (game.money >= game.addBallCost) {
         game.money -= game.addBallCost;
-        game.balls.push(new Ball(canvas.width / 2, 50, 1));
+        game.balls.push(new Ball(canvas.width / 2 + (Math.random() - 0.5) * 20, 50, 1));
         game.addBallCost = Math.ceil(game.addBallCost * 1.2);
         game.updateUI();
     }
@@ -228,12 +286,14 @@ document.getElementById('addBallBtn').addEventListener('click', () => {
 
 document.getElementById('addPadBtn').addEventListener('click', () => {
     if (game.money >= game.addPadCost) {
-        game.money -= game.addPadCost;
-        const newPadX = Math.random() * (canvas.width - 100);
-        const newPadY = Math.random() * (canvas.height - 200) + 100;
-        game.pads.push(new Pad(newPadX, newPadY));
-        game.addPadCost = Math.ceil(game.addPadCost * 1.5);
-        game.updateUI();
+        const layout = levelLayouts[game.level - 1] || levelLayouts[0];
+        if (game.pads.length < layout.length) {
+            game.money -= game.addPadCost;
+            const nextPadPos = layout[game.pads.length];
+            game.pads.push(new Pad(nextPadPos.x, nextPadPos.y));
+            game.addPadCost = Math.ceil(game.addPadCost * 1.5);
+            game.updateUI();
+        }
     }
 });
 
@@ -246,6 +306,7 @@ document.getElementById('mergeBtn').addEventListener('click', () => {
             game.balls = game.balls.filter(b => b !== ball1 && b !== ball2);
             game.balls.push(newBall);
             game.selectedBalls = [];
+            game.updateMergeInstructions();
         }
     }
 });

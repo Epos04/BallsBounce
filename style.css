@@ -31,3 +31,9 @@ button {
     padding: 10px;
     cursor: pointer;
 }
+
+.instructions {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 15px;
+}
