@@ -23,6 +23,7 @@ class Game {
         this.addBallCost = 10;
         this.addPadCost = 100;
         this.selectedBalls = [];
+        this.particles = [];
 
         this.init();
     }
@@ -43,6 +44,10 @@ class Game {
             }
         });
 
+        // Update particles
+        this.particles = this.particles.filter(p => p.lifespan > 0);
+        this.particles.forEach(p => p.update());
+
         // Check for level completion
         if (this.money >= this.targetMoney) {
             this.level++;
@@ -52,12 +57,17 @@ class Game {
     }
 
     draw() {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Draw background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#87CEEB');
+        gradient.addColorStop(1, '#4682B4');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw all game objects
         this.pads.forEach(pad => pad.draw());
         this.balls.forEach(ball => ball.draw());
+        this.particles.forEach(p => p.draw());
     }
 
     updateUI() {
@@ -105,6 +115,9 @@ class Ball {
                 this.dy *= -1.1; // Elastic bounce
                 game.money += 1 * Math.pow(2, this.level - 1);
                 game.updateUI();
+                for (let i = 0; i < 10; i++) {
+                    game.particles.push(new Particle(this.x, this.y, this.color));
+                }
             }
         });
     }
@@ -141,6 +154,34 @@ class Pad {
     draw() {
         ctx.fillStyle = '#8B4513';
         ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.size = Math.random() * 5 + 1;
+        this.dx = (Math.random() - 0.5) * 2;
+        this.dy = (Math.random() - 0.5) * 2;
+        this.lifespan = 100;
+    }
+
+    update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.lifespan--;
+    }
+
+    draw() {
+        ctx.globalAlpha = this.lifespan / 100;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+        ctx.globalAlpha = 1;
     }
 }
 
