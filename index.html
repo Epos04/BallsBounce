@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Bounce Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Idle Bounce Game</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-container">
+            <div id="stats">
+                <p>Money: $<span id="money">0</span></p>
+                <p>Level: <span id="level">1</span></p>
+                <p>Target: $<span id="target">1000</span></p>
+            </div>
+            <div id="upgrades">
+                <button id="addBallBtn">Add Ball (Cost: $<span id="addBallCost">10</span>)</button>
+                <button id="addPadBtn">Add Pad (Cost: $<span id="addPadCost">100</span>)</button>
+                <button id="mergeBtn">Merge Balls</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
