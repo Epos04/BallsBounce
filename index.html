@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idle Bounce Game</title>
+    <title>Idle Bounce Game - Phaser Edition</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
 </head>
 <body>
     <h1>Idle Bounce Game</h1>
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
         <div id="ui-container">
             <div id="stats">
                 <p>Money: $<span id="money">0</span></p>
@@ -19,7 +19,7 @@
             <div id="upgrades">
                 <button id="addBallBtn">Add Ball (Cost: $<span id="addBallCost">10</span>)</button>
                 <button id="addPadBtn">Add Pad (Cost: $<span id="addPadCost">100</span>)</button>
-                <button id="mergeBtn">Merge Balls</button>
+                <button id="mergeBtn">Merge Balls (Cost: $<span id="mergeCost">200</span>)</button>
                 <p id="mergeInstructions" class="instructions"></p>
             </div>
         </div>
